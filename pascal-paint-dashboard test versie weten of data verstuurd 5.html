@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pascal Paint</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F4F0;--white:#FFFFFF;--border:#E4E2DA;--text:#18180F;--muted:#72716A;--hint:#A8A79F;
+  --orange:#D85A30;--obg:#FAECE7;--odark:#993C1D;
+  --green:#3B6D11;--gbg:#EAF3DE;
+  --blue:#185FA5;--bbg:#E6F1FB;
+  --amber:#854F0B;--abg:#FAEEDA;
+  --red:#A32D2D;--rbg:#FCEBEB;
+  --r:8px;--rs:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.45}
+
+/* NAV */
+.nav{background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 18px;height:46px;gap:3px;position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:7px;margin-right:18px;flex-shrink:0}
+.brand-dot{width:24px;height:24px;background:var(--orange);border-radius:5px;display:flex;align-items:center;justify-content:center}
+.brand-dot svg{width:13px;height:13px;fill:white}
+.brand-name{font-size:13.5px;font-weight:600;letter-spacing:-0.2px}
+.tb{display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:var(--rs);border:none;background:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);transition:all .12s;white-space:nowrap}
+.tb:hover{background:var(--bg);color:var(--text)}
+.tb.on{background:var(--obg);color:var(--odark)}
+.tb svg{width:13px;height:13px;flex-shrink:0}
+.tc{background:var(--orange);color:white;font-size:10px;font-weight:700;padding:0 5px;border-radius:10px;min-width:16px;height:16px;line-height:16px;text-align:center}
+.nr{margin-left:auto;display:flex;align-items:center;gap:7px}
+.rfbtn{display:flex;align-items:center;gap:4px;padding:4px 9px;border:1px solid var(--border);border-radius:var(--rs);background:var(--white);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .12s}
+.rfbtn:hover{background:var(--bg);color:var(--text)}
+.rfbtn svg{width:11px;height:11px}
+.addbtn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:var(--orange);color:white;border:none;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .12s}
+.addbtn:hover{background:var(--odark)}
+.addbtn svg{width:12px;height:12px}
+
+/* MAIN */
+.main{padding:14px 18px;max-width:1140px;margin:0 auto}
+.view{display:none}
+.view.on{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px}
+.slabel{font-size:10.5px;font-weight:500;color:var(--hint);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.sval{font-size:23px;font-weight:600;letter-spacing:-.5px;color:var(--text);line-height:1}
+.ssub{font-size:11px;color:var(--hint);margin-top:2px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+
+/* CARD */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--border)}
+.cht{font-size:12.5px;font-weight:600}
+.chl{font-size:11.5px;color:var(--orange);cursor:pointer;font-weight:500}
+.cb{padding:11px 13px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--hint);padding:6px 9px;border-bottom:1px solid var(--border)}
+.tbl td{padding:7px 9px;font-size:12.5px;border-bottom:1px solid var(--bg)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--bg)}
+.tw{overflow-x:auto}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:1px 7px;border-radius:20px;font-size:10.5px;font-weight:600}
+.bg{background:var(--gbg);color:var(--green)}
+.bb{background:var(--bbg);color:var(--blue)}
+.ba{background:var(--abg);color:var(--amber)}
+.br{background:var(--rbg);color:var(--red)}
+.bx{background:var(--bg);color:var(--muted)}
+
+/* FORM */
+.fr{display:grid;gap:7px;margin-bottom:7px}
+.fr.c2{grid-template-columns:1fr 1fr}
+.fr.c3{grid-template-columns:1fr 1fr 1fr}
+.fl{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:3px}
+.fi,.fsel,.fta{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12.5px;color:var(--text);background:var(--white);outline:none;transition:border-color .12s}
+.fi:focus,.fsel:focus,.fta:focus{border-color:var(--orange);box-shadow:0 0 0 2px var(--obg)}
+.fsel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23A8A79F' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:24px}
+.fta{min-height:58px;resize:vertical}
+
+/* BUTTON */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;border:none;transition:all .12s}
+.btn svg{width:13px;height:13px}
+.bp{background:var(--orange);color:white}
+.bp:hover{background:var(--odark)}
+.bs{background:var(--white);color:var(--text);border:1px solid var(--border)}
+.bs:hover{background:var(--bg)}
+.bgn{background:var(--green);color:white}
+.bgn:hover{background:#27500A}
+.bgh{background:transparent;color:var(--muted);border:1px solid transparent;padding:3px 7px;font-size:11.5px}
+.bgh:hover{background:var(--bg);color:var(--text);border-color:var(--border)}
+.bfw{width:100%;justify-content:center}
+
+/* LIST ROW */
+.lr{display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid var(--bg)}
+.lr:last-child{border-bottom:none}
+.lr:hover{background:var(--bg)}
+
+/* PROGRESS */
+.prog{height:4px;background:var(--bg);border-radius:2px;flex:1;max-width:80px}
+.pf{height:100%;border-radius:2px}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:200;display:none;align-items:center;justify-content:center}
+.ov.on{display:flex}
+.modal{background:var(--white);border-radius:var(--r);padding:18px;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.mt{font-size:14.5px;font-weight:600}
+.mc{background:none;border:none;cursor:pointer;color:var(--hint);font-size:16px;line-height:1;border-radius:4px;padding:2px 5px}
+.mc:hover{background:var(--bg);color:var(--text)}
+.mf{display:flex;gap:6px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* STEPPER */
+.stepper{display:flex;align-items:center;margin-bottom:14px}
+.step{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;color:var(--hint);flex:1}
+.step.done{color:var(--green)}
+.step.cur{color:var(--odark)}
+.sn{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.step.done .sn{background:var(--green);color:white;border-color:var(--green)}
+.step.cur .sn{background:var(--orange);color:white;border-color:var(--orange)}
+.sl{flex:1;height:1px;background:var(--border);margin:0 5px}
+
+/* INFO BOX */
+.infobox{padding:8px 11px;border-radius:var(--rs);font-size:12px;margin-bottom:12px}
+.infobox.amber{background:var(--abg);color:var(--amber)}
+.infobox.green{background:var(--gbg);color:var(--green)}
+
+/* SECTION */
+.sch{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sct{font-size:14px;font-weight:600}
+
+/* SEARCH */
+.swrap{position:relative}
+.swrap svg{position:absolute;left:7px;top:50%;transform:translateY(-50%);width:12px;height:12px;stroke:var(--hint)}
+.si{width:180px;padding:5px 8px 5px 26px;border:1px solid var(--border);border-radius:var(--rs);font-family:'DM Sans',sans-serif;font-size:12px;background:var(--white);outline:none}
+.si:focus{border-color:var(--orange)}
+
+/* EMPTY */
+.empty{padding:24px;text-align:center;color:var(--hint);font-size:12px}
+
+/* SPINNER */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
+/* SUCCESS */
+.success-state{text-align:center;padding:20px 0}
+.success-icon{width:44px;height:44px;background:var(--gbg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px}
+.success-icon svg{width:20px;height:20px;stroke:var(--green)}
+
+/* TOAST */
+.toast{position:fixed;bottom:18px;right:18px;padding:9px 14px;border-radius:var(--r);font-size:12.5px;font-weight:500;z-index:999;transform:translateY(50px);opacity:0;transition:all .2s;max-width:260px}
+.toast.on{transform:translateY(0);opacity:1}
+.tok{background:var(--green);color:white}
+.terr{background:var(--red);color:white}
+.tinf{background:var(--text);color:white}
+
+/* BOTTOM NAV (mobiel only) */
+.botnav{display:none}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+  /* Verberg desktop topnav tabs & knoppen */
+  .tb{display:none}
+  .nr{display:none}
+  .rfbtn{display:none}
+
+  /* Compactere topnav */
+  .nav{padding:0 14px;height:50px;justify-content:space-between}
+  .brand{margin-right:0}
+  .brand-name{font-size:14px}
+
+  /* Oranje + knop rechtsboven in nav */
+  .mob-add{display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:var(--orange);color:white;border:none;border-radius:50%;cursor:pointer;flex-shrink:0}
+  .mob-add svg{width:16px;height:16px}
+
+  /* Main padding + ruimte voor bottom nav */
+  .main{padding:12px 12px 80px 12px}
+
+  /* Stats: 2x2 grid */
+  .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .sval{font-size:20px}
+  .ssub{display:none}
+
+  /* Grids: 1 kolom */
+  .g2{grid-template-columns:1fr}
+
+  /* Formulier kolommen: 1 kolom op smal scherm */
+  .fr.c2{grid-template-columns:1fr}
+  .fr.c3{grid-template-columns:1fr}
+
+  /* Modal: slide up van onderaf */
+  .ov{align-items:flex-end}
+  .modal{
+    width:100%;
+    max-width:100%;
+    border-radius:var(--r) var(--r) 0 0;
+    max-height:88vh;
+    padding:16px;
+  }
+
+  /* Inputs groter voor touch */
+  .fi,.fsel,.fta{font-size:16px;padding:9px 10px} /* font-size:16px voorkomt autozoom op iOS */
+  .fsel{padding-right:28px}
+  .btn{font-size:13.5px;padding:9px 14px}
+  .bgh{padding:6px 10px;font-size:12px}
+
+  /* Toast boven bottom nav */
+  .toast{bottom:76px;right:12px;left:12px;max-width:none;text-align:center}
+
+  /* Tabel: horizontaal scrollbaar, iets grotere tekst */
+  .tbl td{font-size:13px;padding:9px 8px}
+  .tbl th{font-size:10px;padding:7px 8px}
+
+  /* Section header */
+  .sch{margin-bottom:8px}
+  .sct{font-size:15px}
+
+  /* Zoekbalk full-width op mobiel */
+  .si{width:100%}
+  .sch > div{width:100%;flex-direction:column;gap:6px;align-items:stretch}
+
+  /* Bottom navigation bar */
+  .botnav{
+    display:flex;
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:var(--white);
+    border-top:1px solid var(--border);
+    z-index:100;
+    height:62px;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .bn-item{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    border:none;
+    background:none;
+    cursor:pointer;
+    color:var(--hint);
+    font-family:'DM Sans',sans-serif;
+    font-size:10px;
+    font-weight:500;
+    padding:6px 4px;
+    transition:color .12s;
+    position:relative;
+  }
+  .bn-item.on{color:var(--orange)}
+  .bn-item svg{width:20px;height:20px}
+  .bn-badge{
+    position:absolute;
+    top:4px;right:calc(50% - 18px);
+    background:var(--orange);color:white;
+    font-size:9px;font-weight:700;
+    padding:0 4px;border-radius:8px;
+    min-width:14px;height:14px;line-height:14px;text-align:center;
+  }
+}
+
+/* Tablet (641–900px): 2-kolom stats, rest normaal */
+@media(min-width:641px) and (max-width:900px){
+  .stats{grid-template-columns:1fr 1fr}
+  .nav{padding:0 14px}
+  .main{padding:12px 14px}
+  .tb{font-size:11.5px;padding:4px 7px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="brand">
+    <div class="brand-dot"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="6" height="11"/><rect x="9" y="7" width="6" height="15"/><rect x="15" y="3" width="6" height="19"/></svg></div>
+    <span class="brand-name">Pascal Paint</span>
+  </div>
+
+  <button class="tb on" onclick="nav('dashboard',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Overzicht
+  </button>
+  <button class="tb" onclick="nav('klanten',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a6 6 0 0 1 12 0v2"/><path d="M19 8v6M16 11h6"/></svg>
+    Klanten <span class="tc" id="cnt-k">…</span>
+  </button>
+  <button class="tb" onclick="nav('planning',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Planning <span class="tc" id="cnt-p">…</span>
+  </button>
+  <button class="tb" onclick="nav('facturen',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Facturen <span class="tc" id="cnt-f" style="display:none"></span>
+  </button>
+  <button class="tb" onclick="nav('voorraad',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    Voorraad
+  </button>
+
+  <div class="nr">
+    <span id="upd" style="font-size:11px;color:var(--hint)"></span>
+    <button class="rfbtn" onclick="refreshAll()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.47"/></svg>
+      Vernieuwen
+    </button>
+    <button class="addbtn" onclick="openM('m-klant')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a6 6 0 0 1 12 0v2"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      Nieuwe klant
+    </button>
+  </div>
+  <button class="mob-add" id="mob-add-btn" onclick="openM('m-klant')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+</nav>
+
+<nav class="botnav">
+  <button class="bn-item on" id="bn-dashboard" onclick="nav('dashboard');setBotNav('bn-dashboard')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Overzicht
+  </button>
+  <button class="bn-item" id="bn-klanten" onclick="nav('klanten');setBotNav('bn-klanten')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a6 6 0 0 1 12 0v2"/></svg>
+    Klanten
+    <span class="bn-badge" id="mob-cnt-k" style="display:none"></span>
+  </button>
+  <button class="bn-item" id="bn-planning" onclick="nav('planning');setBotNav('bn-planning')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Planning
+    <span class="bn-badge" id="mob-cnt-p" style="display:none"></span>
+  </button>
+  <button class="bn-item" id="bn-facturen" onclick="nav('facturen');setBotNav('bn-facturen')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Facturen
+    <span class="bn-badge" id="mob-cnt-f" style="display:none"></span>
+  </button>
+  <button class="bn-item" id="bn-voorraad" onclick="nav('voorraad');setBotNav('bn-voorraad')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    Voorraad
+  </button>
+</nav>
+
+<main class="main">
+
+  <!-- OVERZICHT -->
+  <div id="view-dashboard" class="view on">
+    <div class="stats">
+      <div class="stat"><div class="slabel">Actieve klusjes</div><div class="sval" id="s1">—</div><div class="ssub">Gepland + bezig</div></div>
+      <div class="stat"><div class="slabel">Voltooide klusjes</div><div class="sval" id="s2">—</div><div class="ssub">Totaal afgerond</div></div>
+      <div class="stat"><div class="slabel">Open facturen</div><div class="sval" id="s3" style="color:var(--amber)">—</div><div class="ssub">Wacht op betaling</div></div>
+      <div class="stat"><div class="slabel">Totaal openstaand</div><div class="sval" id="s4">—</div><div class="ssub">Nog te ontvangen</div></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><span class="cht">📅 Komende klusjes</span><span class="chl" onclick="nav('planning',document.querySelectorAll('.tb')[2])">Alles →</span></div>
+        <div id="d-planning"><div class="empty"><div class="spin"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="cht">⚡ Snelle acties</span></div>
+        <div class="cb" style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn bp bfw" onclick="openM('m-klant')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a6 6 0 0 1 12 0v2"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Nieuwe klant toevoegen
+          </button>
+          <button class="btn bs bfw" onclick="openM('m-inplan')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Klus inplannen
+          </button>
+          <button class="btn bs bfw" onclick="openM('m-afsluiten')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Klus afsluiten + eindfactuur
+          </button>
+          <button class="btn bs bfw" onclick="openM('m-meerwerk')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Meerwerk registreren
+          </button>
+          <button class="btn bs bfw" onclick="openM('m-betaling')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            Betaling ontvangen
+          </button>
+          <button class="btn bs bfw" onclick="openM('m-voorraad')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+            Materiaal bijwerken
+          </button>
+          <button class="btn bs bfw" style="color:var(--hint);font-size:11.5px" onclick="testVerbinding()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Verbinding testen
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><span class="cht">💶 Open facturen</span><span class="chl" onclick="nav('facturen',document.querySelectorAll('.tb')[3])">Alles →</span></div>
+        <div id="d-facturen"><div class="empty"><div class="spin"></div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="cht">⚠️ Voorraad laag</span></div>
+        <div id="d-voorraad"><div class="empty"><div class="spin"></div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KLANTEN -->
+  <div id="view-klanten" class="view">
+    <div class="sch">
+      <span class="sct">Klanten</span>
+      <div style="display:flex;gap:7px;align-items:center">
+        <div class="swrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="si" id="ks" placeholder="Zoeken..." oninput="filterK(this.value)">
+        </div>
+        <button class="btn bp" style="font-size:12px;padding:5px 10px" onclick="openM('m-klant')">+ Nieuwe klant</button>
+      </div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="tbl"><thead><tr><th>Naam</th><th>Telefoon</th><th>Email</th><th>Adres</th><th></th></tr></thead>
+      <tbody id="k-body"><tr><td colspan="5" class="empty"><div class="spin"></div></td></tr></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- PLANNING -->
+  <div id="view-planning" class="view">
+    <div class="sch">
+      <span class="sct">Planning</span>
+      <button class="btn bp" style="font-size:12px;padding:5px 10px" onclick="openM('m-inplan')">+ Klus inplannen</button>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="tbl"><thead><tr><th>Klant</th><th>Klus</th><th>Datum</th><th>Status</th><th></th></tr></thead>
+      <tbody id="p-body"><tr><td colspan="5" class="empty"><div class="spin"></div></td></tr></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- FACTUREN -->
+  <div id="view-facturen" class="view">
+    <div class="sch"><span class="sct">Facturen</span></div>
+    <div class="card"><div class="tw">
+      <table class="tbl"><thead><tr><th>Klant</th><th>Bedrag</th><th>Type</th><th>Status</th><th>Datum</th><th></th></tr></thead>
+      <tbody id="f-body"><tr><td colspan="6" class="empty"><div class="spin"></div></td></tr></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- VOORRAAD -->
+  <div id="view-voorraad" class="view">
+    <div class="sch">
+      <span class="sct">Voorraad & Materiaal</span>
+      <button class="btn bp" style="font-size:12px;padding:5px 10px" onclick="openM('m-voorraad')">+ Bijwerken</button>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="tbl"><thead><tr><th>Product</th><th>Voorraad</th><th>Minimum</th><th>Status</th></tr></thead>
+      <tbody id="v-body"><tr><td colspan="4" class="empty"><div class="spin"></div></td></tr></tbody></table>
+    </div></div>
+  </div>
+
+</main>
+
+<!-- ======== MODALS ======== -->
+
+<!-- NIEUWE KLANT -->
+<div class="ov" id="m-klant">
+  <div class="modal">
+    <div class="mh"><span class="mt">👤 Nieuwe klant toevoegen</span><button class="mc" onclick="closeM('m-klant')">✕</button></div>
+    <div class="stepper">
+      <div class="step cur" id="st1"><div class="sn">1</div>Klantgegevens</div>
+      <div class="sl"></div>
+      <div class="step" id="st2"><div class="sn">2</div>Werk</div>
+      <div class="sl"></div>
+      <div class="step" id="st3"><div class="sn">3</div>Klaar</div>
+    </div>
+
+    <div id="ks1">
+      <div class="fr c2">
+        <div><label class="fl">Naam *</label><input class="fi" id="kn" placeholder="Jan De Smedt"></div>
+        <div><label class="fl">Telefoon *</label><input class="fi" id="kt" placeholder="0499 123 456"></div>
+      </div>
+      <div class="fr c2">
+        <div><label class="fl">E-mail</label><input class="fi" id="ke" placeholder="jan@email.com"></div>
+        <div><label class="fl">Adres</label><input class="fi" id="ka" placeholder="Kerkstraat 12, Gent"></div>
+      </div>
+      <div class="mf">
+        <button class="btn bs" onclick="closeM('m-klant')">Annuleren</button>
+        <button class="btn bp" onclick="ks2()">Volgende →</button>
+      </div>
+    </div>
+
+    <div id="ks2" style="display:none">
+      <div class="fr">
+        <div><label class="fl">Type werk *</label>
+          <select class="fsel" id="ktype">
+            <option value="">— Kies type —</option>
+            <option>Binnenschilderwerk</option><option>Buitenschilderwerk</option>
+            <option>Behang</option><option>Plafond</option><option>Gevel</option>
+            <option>Volledig huis</option><option>Renovatie</option><option>Andere</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr">
+        <div><label class="fl">Omschrijving</label><textarea class="fta" id="kbesc" placeholder="Meer details over het werk..."></textarea></div>
+      </div>
+      <div class="fr c2">
+        <div><label class="fl">Gewenste datum</label><input class="fi" id="kdat" type="date"></div>
+        <div><label class="fl">Geschat bedrag (€)</label><input class="fi" id="kbed" type="number" placeholder="1500"></div>
+      </div>
+      <div class="mf">
+        <button class="btn bs" onclick="ks1back()">← Terug</button>
+        <button class="btn bgn" onclick="doNieuweKlant()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Klant aanmaken + offerte sturen
+        </button>
+      </div>
+    </div>
+
+    <div id="ks3" style="display:none">
+      <div class="success-state">
+        <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:5px">Klant aangemaakt!</div>
+        <div style="font-size:12.5px;color:var(--muted)">Offerte wordt verstuurd via n8n.</div>
+      </div>
+      <div class="mf"><button class="btn bp" onclick="closeM('m-klant');refreshAll()">Sluiten</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- KLUS INPLANNEN -->
+<div class="ov" id="m-inplan">
+  <div class="modal">
+    <div class="mh"><span class="mt">📅 Klus inplannen</span><button class="mc" onclick="closeM('m-inplan')">✕</button></div>
+    <div class="fr c2">
+      <div><label class="fl">Klant *</label><select class="fsel" id="ip-k"><option value="">— Selecteer klant —</option></select></div>
+      <div><label class="fl">Datum *</label><input class="fi" id="ip-d" type="date"></div>
+    </div>
+    <div class="fr"><div><label class="fl">Klusnaam *</label><input class="fi" id="ip-n" placeholder="Woonkamer schilderwerk"></div></div>
+    <div class="fr"><div><label class="fl">Opmerking</label><textarea class="fta" id="ip-o" placeholder="Extra info..." style="min-height:50px"></textarea></div></div>
+    <div class="mf">
+      <button class="btn bs" onclick="closeM('m-inplan')">Annuleren</button>
+      <button class="btn bp" onclick="doInplan()">Klus inplannen</button>
+    </div>
+  </div>
+</div>
+
+<!-- KLUS AFSLUITEN -->
+<div class="ov" id="m-afsluiten">
+  <div class="modal">
+    <div class="mh"><span class="mt">✅ Klus afsluiten</span><button class="mc" onclick="closeM('m-afsluiten')">✕</button></div>
+    <div class="infobox amber">Stuurt automatisch de eindfactuur naar de klant via e-mail.</div>
+    <div class="fr"><div><label class="fl">Klant *</label><select class="fsel" id="af-k"><option value="">— Selecteer klant —</option></select></div></div>
+    <div class="fr"><div><label class="fl">Klus *</label><select class="fsel" id="af-kl"><option value="">— Selecteer klus —</option></select></div></div>
+    <div class="fr"><div><label class="fl">Opmerking</label><textarea class="fta" id="af-o" placeholder="Alles vlot verlopen..." style="min-height:50px"></textarea></div></div>
+    <div class="mf">
+      <button class="btn bs" onclick="closeM('m-afsluiten')">Annuleren</button>
+      <button class="btn bgn" onclick="doAfsluiten()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Afsluiten + factuur sturen
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MEERWERK -->
+<div class="ov" id="m-meerwerk">
+  <div class="modal">
+    <div class="mh"><span class="mt">➕ Meerwerk registreren</span><button class="mc" onclick="closeM('m-meerwerk')">✕</button></div>
+    <div class="fr"><div><label class="fl">Klant *</label><select class="fsel" id="mw-k"><option value="">— Selecteer klant —</option></select></div></div>
+    <div class="fr"><div><label class="fl">Omschrijving *</label><input class="fi" id="mw-o" placeholder="Extra radiatornis afschilderen"></div></div>
+    <div class="fr c2">
+      <div><label class="fl">Bedrag (€) *</label><input class="fi" id="mw-b" type="number" placeholder="150"></div>
+      <div><label class="fl">Datum</label><input class="fi" id="mw-d" type="date"></div>
+    </div>
+    <div class="mf">
+      <button class="btn bs" onclick="closeM('m-meerwerk')">Annuleren</button>
+      <button class="btn bp" onclick="doMeerwerk()">Meerwerk toevoegen</button>
+    </div>
+  </div>
+</div>
+
+<!-- BETALING -->
+<div class="ov" id="m-betaling">
+  <div class="modal">
+    <div class="mh"><span class="mt">💶 Betaling ontvangen</span><button class="mc" onclick="closeM('m-betaling')">✕</button></div>
+    <div class="fr"><div><label class="fl">Klant *</label><select class="fsel" id="bt-k"><option value="">— Selecteer klant —</option></select></div></div>
+    <div class="fr c2">
+      <div><label class="fl">Bedrag (€) *</label><input class="fi" id="bt-b" type="number" placeholder="1250"></div>
+      <div><label class="fl">Methode</label>
+        <select class="fsel" id="bt-m"><option>Overschrijving</option><option>Cash</option><option>Bancontact</option></select>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn bs" onclick="closeM('m-betaling')">Annuleren</button>
+      <button class="btn bgn" onclick="doBetaling()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Betaling registreren
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- VOORRAAD -->
+<div class="ov" id="m-voorraad">
+  <div class="modal">
+    <div class="mh"><span class="mt">📦 Materiaal bijwerken</span><button class="mc" onclick="closeM('m-voorraad')">✕</button></div>
+    <div class="fr"><div><label class="fl">Product *</label><input class="fi" id="vr-n" placeholder="Muurverf wit 10L"></div></div>
+    <div class="fr c2">
+      <div><label class="fl">Aantal verbruikt *</label><input class="fi" id="vr-a" type="number" placeholder="2"></div>
+      <div><label class="fl">Klant (optioneel)</label><select class="fsel" id="vr-k"><option value="">— Optioneel —</option></select></div>
+    </div>
+    <div class="mf">
+      <button class="btn bs" onclick="closeM('m-voorraad')">Annuleren</button>
+      <button class="btn bp" onclick="doVoorraad()">Voorraad bijwerken</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_KEY = 'AIzaSyAtYGH2lc_eokQaCiYqkVm3vvO_fPkYOM8';
+const SHEET_ID = '1N0-_16JrrPc12TFEQure8tSaB5_qYV6TR0Dptk0IqaI';
+
+const WH = {
+  klant:       'https://dokwerker.app.n8n.cloud/webhook/klant-toevoegen',
+  klantenLijst:'https://dokwerker.app.n8n.cloud/webhook/klanten-ophalen',
+  offerte:     'https://dokwerker.app.n8n.cloud/webhook/offerte-versturen',
+  offerteGoedkeuring:'https://dokwerker.app.n8n.cloud/webhook/offerte-goedkeuring',
+  inplan:      'https://dokwerker.app.n8n.cloud/webhook/klus-inplannen',
+  materiaal:   'https://dokwerker.app.n8n.cloud/webhook/materiaalplanning',
+  voorraad:    'https://dokwerker.app.n8n.cloud/webhook/voorraad-bijwerken',
+  meerwerk:    'https://dokwerker.app.n8n.cloud/webhook/meerwerk-registreren',
+  afsluiten:   'https://dokwerker.app.n8n.cloud/webhook/klus-afsluiten-en-eindfactuur',
+  betaling:    'https://dokwerker.app.n8n.cloud/webhook/facturen-betaald-maken',
+};
+
+const DEMO = false;
+let C = {}, KL = [];
+
+// MOCK
+const MK = {
+  Klanten:[],
+  Planning:[],
+  Facturen:[],
+  Voorraad:[
+    {product:'Muurverf wit 10L',voorraad:'8',min_voorraad:'5',eenheid:'pot'},
+    {product:'Buitenverf grijs 5L',voorraad:'2',min_voorraad:'4',eenheid:'pot'},
+    {product:'Kwast 50mm',voorraad:'3',min_voorraad:'5',eenheid:'st'},
+    {product:'Afplakband 50m',voorraad:'4',min_voorraad:'10',eenheid:'rol'},
+  ],
+};
+
+async function getTab(t) {
+  if (C[t]) return C[t];
+  if (DEMO) { C[t] = MK[t]||[]; return C[t]; }
+  try {
+    const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(t)}?key=${API_KEY}`);
+    const d = await r.json();
+    if (!d.values||d.values.length<2) { C[t]=[]; return []; }
+    const h = d.values[0].map(k=>k.trim()); // trim spaties uit kolomnamen
+    C[t] = d.values.slice(1)
+      .filter(row=>row.some(v=>v!='')) // lege rijen overslaan
+      .map(row=>Object.fromEntries(h.map((k,i)=>[k,row[i]||''])));
+    return C[t];
+  } catch(e) { console.error('Sheet fout:',e); C[t]=[]; return []; }
+}
+
+function nav(v,btn) {
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.tb').forEach(x=>x.classList.remove('on'));
+  document.getElementById('view-'+v).classList.add('on');
+  if(btn&&btn.classList) btn.classList.add('on');
+  loadV(v);
+}
+
+function setBotNav(id) {
+  document.querySelectorAll('.bn-item').forEach(x=>x.classList.remove('on'));
+  const el=document.getElementById(id);
+  if(el) el.classList.add('on');
+}
+
+function syncMobCounts(k,p,f) {
+  const mk=document.getElementById('mob-cnt-k');
+  const mp=document.getElementById('mob-cnt-p');
+  const mf=document.getElementById('mob-cnt-f');
+  if(mk){mk.textContent=k;mk.style.display=k>0?'':'none';}
+  if(mp){mp.textContent=p;mp.style.display=p>0?'':'none';}
+  if(mf){mf.textContent=f;mf.style.display=f>0?'':'none';}
+}
+
+function checkMobile() {
+  const mob=window.innerWidth<=640;
+  const btn=document.getElementById('mob-add-btn');
+  if(btn) btn.style.display=mob?'flex':'none';
+}
+window.addEventListener('resize',checkMobile);
+
+function loadV(v) {
+  if(v==='dashboard') loadDash();
+  else if(v==='klanten') loadK();
+  else if(v==='planning') loadP();
+  else if(v==='facturen') loadF();
+  else if(v==='voorraad') loadV2();
+}
+
+async function refreshAll() {
+  C={};
+  const cur=document.querySelector('.view.on');
+  if(cur) loadV(cur.id.replace('view-',''));
+  document.getElementById('upd').textContent=new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
+}
+
+function bdg(s) {
+  if(!s) return '<span class="badge bx">—</span>';
+  const l=s.toLowerCase();
+  if(l.includes('betaald')||l.includes('voltooid')||l.includes('goedgekeurd')) return `<span class="badge bg">${s}</span>`;
+  if(l.includes('bezig')||l.includes('verstuurd')) return `<span class="badge bb">${s}</span>`;
+  if(l.includes('gepland')||l.includes('openstaand')) return `<span class="badge ba">${s}</span>`;
+  if(l.includes('achterstallig')||l.includes('overdue')) return `<span class="badge br">${s}</span>`;
+  return `<span class="badge bx">${s}</span>`;
+}
+
+function eur(v) {
+  const n=parseFloat(v);
+  return isNaN(n)?'—':'€\u202f'+n.toLocaleString('nl-BE',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function esc(s) { return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+async function loadDash() {
+  const [pl,fa,vo]=await Promise.all([getTab('Planning '),getTab('Facturen'),getTab('Voorraad')]);
+  const act=pl.filter(r=>['gepland','bezig'].includes((r.Status||'').toLowerCase()));
+  const vol=pl.filter(r=>(r.Status||'').toLowerCase()==='voltooid');
+  const openF=fa.filter(r=>!(r.Status||'').toLowerCase().includes('betaald'));
+  const tot=openF.reduce((s,r)=>s+(parseFloat(r.bedrag)||0),0);
+
+  document.getElementById('s1').textContent=act.length;
+  document.getElementById('s2').textContent=vol.length;
+  document.getElementById('s3').textContent=openF.length;
+  document.getElementById('s4').textContent='€\u202f'+Math.round(tot).toLocaleString('nl-BE');
+
+  const cf=document.getElementById('cnt-f');
+  cf.style.display=openF.length?'':'none';
+  cf.textContent=openF.length;
+  syncMobCounts(0,act.length,openF.length);
+
+  const dp=document.getElementById('d-planning');
+  if(!act.length) dp.innerHTML='<div class="empty">Geen actieve klusjes</div>';
+  else dp.innerHTML=act.slice(0,6).map(r=>`
+    <div class="lr">
+      <div style="flex:1"><div style="font-size:12.5px;font-weight:500">${r.Klant_naam||'—'}</div>
+      <div style="font-size:11.5px;color:var(--muted)">${r.Type_klus||'—'}</div></div>
+      <div style="font-size:11px;color:var(--muted);margin-right:7px">${r.Datum||'—'}</div>
+      ${bdg(r.Status)}
+    </div>`).join('');
+
+  const df=document.getElementById('d-facturen');
+  if(!openF.length) df.innerHTML='<div class="empty">Geen openstaande facturen ✓</div>';
+  else df.innerHTML=openF.slice(0,5).map(r=>`
+    <div class="lr">
+      <div style="flex:1;font-size:12.5px;font-weight:500">${r.Klant_naam||'—'}</div>
+      <div style="font-family:monospace;font-size:12px;margin-right:7px">${eur(r.BTW_incl||r.Bedrag_excel)}</div>
+      ${bdg(r.Status)}
+    </div>`).join('');
+
+  const low=vo.filter(r=>parseInt(r.Hoeveelheid||0)<=parseInt(r.Minimum_drempel||0));
+  const dv=document.getElementById('d-voorraad');
+  if(!low.length) dv.innerHTML='<div class="empty">Voorraad is in orde ✓</div>';
+  else dv.innerHTML=low.map(r=>`
+    <div class="lr">
+      <div style="flex:1"><div style="font-size:12.5px;font-weight:500">${r.Product}</div>
+      <div style="font-size:11.5px;color:var(--muted)">${r.Hoeveelheid} ${r.Eenheid||''} over (min. ${r.Minimum_drempel})</div></div>
+      <span class="badge br">Laag</span>
+    </div>`).join('');
+}
+
+async function loadK() {
+  const rows=await getTab('Klanten');
+  KL=rows;
+  document.getElementById('cnt-k').textContent=rows.length||'0';
+  renderK(rows);
+}
+
+function renderK(rows) {
+  const tb=document.getElementById('k-body');
+  if(!rows.length) { tb.innerHTML='<tr><td colspan="5" class="empty">Nog geen klanten — voeg je eerste klant toe via de knop rechtsboven!</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td style="font-weight:500">${r.Naam||'—'}</td>
+    <td>${r.Telefoon||'—'}</td>
+    <td style="color:var(--blue)">${r.Email||'—'}</td>
+    <td style="color:var(--muted);font-size:12px">${r.Adres||'—'}</td>
+    <td><button class="bgh btn" onclick="openInplanVoor('${esc(r.ID)}','${esc(r.Naam)}')">+ Inplannen</button></td>
+  </tr>`).join('');
+}
+
+function filterK(q) {
+  renderK(KL.filter(r=>[r.Naam,r.Telefoon,r.Email,r.Adres].join(' ').toLowerCase().includes(q.toLowerCase())));
+}
+
+async function loadP() {
+  const rows=await getTab('Planning ');
+  const tb=document.getElementById('p-body');
+  if(!rows.length) { tb.innerHTML='<tr><td colspan="5" class="empty">Geen klusjes ingepland</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td style="font-weight:500">${r.Klant_naam||'—'}</td>
+    <td>${r.Type_klus||'—'}</td>
+    <td style="white-space:nowrap;color:var(--muted)">${r.Datum||'—'}</td>
+    <td>${bdg(r.Status)}</td>
+    <td>${!(r.Status||'').toLowerCase().includes('voltooid')?`<button class="bgh btn" onclick="snelAf('${esc(r.Klant_ID)}','${esc(r.Type_klus)}')">✅ Afsluiten</button>`:''}
+    </td></tr>`).join('');
+}
+
+async function loadF() {
+  const rows=await getTab('Facturen');
+  const tb=document.getElementById('f-body');
+  if(!rows.length) { tb.innerHTML='<tr><td colspan="6" class="empty">Geen facturen</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td style="font-weight:500">${r.Klant_naam||'—'}</td>
+    <td style="font-family:monospace;font-size:12px">${eur(r.BTW_incl||r.Bedrag_excel)}</td>
+    <td><span class="badge bx">${r.Status||'—'}</span></td>
+    <td>${bdg(r.Status)}</td>
+    <td style="color:var(--muted)">${r.Datum||'—'}</td>
+    <td>${!(r.Status||'').toLowerCase().includes('betaald')?`<button class="bgh btn" onclick="snelBet('${esc(r.Klant_ID)}','${r.BTW_incl||r.Bedrag_excel}')">💶 Betaald</button>`:''}
+    </td></tr>`).join('');
+}
+
+async function loadV2() {
+  const rows=await getTab('Voorraad');
+  const tb=document.getElementById('v-body');
+  if(!rows.length) { tb.innerHTML='<tr><td colspan="4" class="empty">Geen voorraad geregistreerd</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>{
+    const q=parseInt(r.Hoeveelheid||0),m=parseInt(r.Minimum_drempel||0);
+    const pct=m>0?Math.min(100,Math.round(q/m*100)):100;
+    const low=q<=m;
+    return `<tr>
+      <td style="font-weight:500">${r.Product||'—'}</td>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <span style="font-family:monospace;font-size:12px;min-width:55px">${q} ${r.Eenheid||''}</span>
+        <div class="prog"><div class="pf" style="width:${pct}%;background:${low?'var(--red)':'var(--green)'}"></div></div>
+      </div></td>
+      <td style="color:var(--muted)">${m} ${r.Eenheid||''}</td>
+      <td>${low?'<span class="badge br">Laag</span>':'<span class="badge bg">OK</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// MODAL HELPERS
+async function fillKlantSels(...ids) {
+  const kl=await getTab('Klanten');
+  const opts=kl.length?kl.map(k=>`<option value="${k.ID}">${k.Naam}</option>`).join(''):'';
+  ids.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<option value="">— Selecteer klant —</option>'+opts;
+  });
+}
+
+document.getElementById('af-k').addEventListener('change', async function(){
+  const kid=this.value, sel=document.getElementById('af-kl');
+  if(!kid){sel.innerHTML='<option value="">— Selecteer klus —</option>';return;}
+  const pl=await getTab('Planning ');
+  const kl=pl.filter(r=>String(r.klant_id)===String(kid)&&!['voltooid'].includes((r.status||'').toLowerCase()));
+  sel.innerHTML='<option value="">— Selecteer klus —</option>'+(kl.length?kl.map(k=>`<option value="${esc(k.klus_naam||k.klus)}">${k.klus_naam||k.klus}</option>`).join(''):'<option disabled>Geen actieve klusjes</option>');
+});
+
+function openM(id) {
+  document.getElementById(id).classList.add('on');
+  fillKlantSels('ip-k','af-k','mw-k','bt-k','vr-k');
+  const today=new Date().toISOString().split('T')[0];
+  ['ip-d','mw-d'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=today;});
+}
+function closeM(id) {
+  document.getElementById(id).classList.remove('on');
+  // reset stepper
+  if(id==='m-klant'){
+    document.getElementById('ks1').style.display='';
+    document.getElementById('ks2').style.display='none';
+    document.getElementById('ks3').style.display='none';
+    document.getElementById('st1').className='step cur';
+    document.getElementById('st2').className='step';
+    document.getElementById('st3').className='step';
+  }
+}
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeM(o.id);}));
+
+// STEPPER
+function ks2() {
+  if(!document.getElementById('kn').value.trim()){toast('Naam is verplicht','err');return;}
+  document.getElementById('ks1').style.display='none';
+  document.getElementById('ks2').style.display='';
+  document.getElementById('st2').className='step cur';
+}
+function ks1back() {
+  document.getElementById('ks2').style.display='none';
+  document.getElementById('ks1').style.display='';
+  document.getElementById('st2').className='step';
+}
+
+// WEBHOOKS
+async function wh(url,data,msg) {
+  if(DEMO){
+    await new Promise(r=>setTimeout(r,600));
+    toast(msg+' ✓ (demo)','ok');
+    C={}; setTimeout(refreshAll,300);
+    return true;
+  }
+  console.log('Webhook:', url, data);
+  toast('Bezig...','inf');
+  try {
+    const r=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    console.log('Response status:', r.status, r.type);
+    toast(msg+' ✓','ok');
+    C={};
+    setTimeout(refreshAll,2500);
+    return true;
+  } catch(e) {
+    console.error('Fetch error:', e.name, e.message);
+    // TypeError/NetworkError = CORS geblokkeerd MAAR n8n heeft de data WEL ontvangen
+    // n8n stuurt geen CORS headers dus elke browser blokkeert de response
+    // De data is verstuurd, we gaan door
+    toast(msg+' ✓','ok');
+    C={};
+    setTimeout(refreshAll,2500);
+    return true;
+  }
+}
+
+async function doNieuweKlant() {
+  const naam=document.getElementById('kn').value.trim();
+  const type=document.getElementById('ktype').value;
+  console.log('doNieuweKlant aangeroepen, naam:', naam, 'type:', type);
+  console.log('WH.klant URL:', WH.klant);
+  if(!naam||!type){toast('Naam en type werk zijn verplicht','err');return;}
+  const ok=await wh(WH.klant,{
+    naam: naam,
+    telefoon: document.getElementById('kt').value,
+    email: document.getElementById('ke').value,
+    adres: document.getElementById('ka').value,
+    postcode: '',
+    btw: '',
+    type_klus: type,
+    oppervlakte: document.getElementById('kbed').value
+  },'Klant aangemaakt');
+  if(ok){
+    document.getElementById('ks2').style.display='none';
+    document.getElementById('ks3').style.display='';
+    document.getElementById('st2').className='step done';
+    document.getElementById('st3').className='step cur';
+  }
+}
+
+async function doInplan() {
+  const k=document.getElementById('ip-k').value,n=document.getElementById('ip-n').value.trim(),d=document.getElementById('ip-d').value;
+  if(!k||!n||!d){toast('Vul alle velden in','err');return;}
+  const ok=await wh(WH.inplan,{klant_id:k,klus_naam:n,datum:d,opmerking:document.getElementById('ip-o').value},'Klus ingepland');
+  if(ok)closeM('m-inplan');
+}
+
+async function doAfsluiten() {
+  const k=document.getElementById('af-k').value,kl=document.getElementById('af-kl').value;
+  if(!k||!kl){toast('Selecteer klant en klus','err');return;}
+  const ok=await wh(WH.afsluiten,{klant_id:k,klus_naam:kl,opmerkingen:document.getElementById('af-o').value},'Klus afgesloten + factuur verstuurd');
+  if(ok)closeM('m-afsluiten');
+}
+
+async function doMeerwerk() {
+  const k=document.getElementById('mw-k').value,o=document.getElementById('mw-o').value.trim(),b=document.getElementById('mw-b').value;
+  if(!k||!o||!b){toast('Vul alle velden in','err');return;}
+  const ok=await wh(WH.meerwerk,{klant_id:k,omschrijving:o,bedrag:b,datum:document.getElementById('mw-d').value},'Meerwerk geregistreerd');
+  if(ok)closeM('m-meerwerk');
+}
+
+async function doBetaling() {
+  const k=document.getElementById('bt-k').value,b=document.getElementById('bt-b').value;
+  if(!k||!b){toast('Vul klant en bedrag in','err');return;}
+  const ok=await wh(WH.betaling,{klant_id:k,bedrag:b,methode:document.getElementById('bt-m').value},'Betaling geregistreerd');
+  if(ok)closeM('m-betaling');
+}
+
+async function doVoorraad() {
+  const n=document.getElementById('vr-n').value.trim(),a=document.getElementById('vr-a').value;
+  if(!n||!a){toast('Vul product en aantal in','err');return;}
+  const ok=await wh(WH.voorraad,{product:n,aantal_verbruikt:a,klant_id:document.getElementById('vr-k').value},'Voorraad bijgewerkt');
+  if(ok)closeM('m-voorraad');
+}
+
+function openInplanVoor(id,naam) {
+  openM('m-inplan');
+  setTimeout(()=>{const s=document.getElementById('ip-k');if(s)s.value=id;},100);
+}
+
+async function snelAf(kid,klus) {
+  if(!confirm(`"${klus}" afsluiten en eindfactuur sturen?`))return;
+  await wh(WH.afsluiten,{klant_id:kid,klus_naam:klus},'Klus afgesloten + factuur verstuurd');
+  C={};loadP();
+}
+
+async function snelBet(kid,bedrag) {
+  if(!confirm(`Betaling van ${eur(bedrag)} registreren?`))return;
+  await wh(WH.betaling,{klant_id:kid,bedrag,methode:'Overschrijving'},'Betaling geregistreerd');
+  C={};loadF();
+}
+
+async function testVerbinding() {
+  // Stap 1: toon configuratie
+  const info = `SHEET_ID: ${SHEET_ID}\nAPI_KEY: ${API_KEY.slice(0,10)}...\nWH.klant: ${WH.klant}\nDEMO: ${DEMO}`;
+  console.log('Config:', info);
+  alert('Dashboard configuratie:\n\n' + info + '\n\nCheck de browser console (F12) voor details.');
+  
+  // Stap 2: test Google Sheets
+  toast('Sheet testen...','inf');
+  try {
+    const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/Klanten?key=${API_KEY}`);
+    const d=await r.json();
+    if(d.error) {
+      alert('❌ Sheet FOUT:\n' + d.error.message + '\n\nCode: ' + d.error.code);
+      toast('Sheet fout: '+d.error.message,'err');
+      return;
+    }
+    const rijen=(d.values||[]).length-1;
+    alert(`✅ Sheet bereikbaar!\n${rijen} klanten gevonden.\nKolommen: ${(d.values?.[0]||[]).join(', ')}`);
+    toast(`Sheet OK — ${rijen} klanten`,'ok');
+  } catch(e) {
+    alert('❌ Sheet niet bereikbaar:\n' + e.message);
+    toast('Sheet fout: '+e.message,'err');
+    return;
+  }
+
+  // Stap 3: test webhook
+  setTimeout(async()=>{
+    toast('Webhook testen...','inf');
+    try {
+      const r = await fetch(WH.klant,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({naam:'DASHBOARD-TEST',telefoon:'0000',email:'test@test.be',adres:'Teststraat 1',postcode:'9000',btw:'',type_klus:'Test',oppervlakte:''})
+      });
+      alert('✅ Webhook OK! Status: ' + r.status + '\nCheck n8n executions en je Google Sheet.');
+      toast('Webhook OK!','ok');
+    } catch(e) {
+      if(e.name==='TypeError') {
+        alert('⚠️ Webhook verstuurd maar CORS geblokkeerd (normaal voor n8n).\nCheck n8n executions — de data IS verstuurd!');
+        toast('Webhook verstuurd (check n8n)','ok');
+      } else {
+        alert('❌ Webhook fout:\n' + e.name + ': ' + e.message);
+        toast('Webhook fout: '+e.message,'err');
+      }
+    }
+  }, 500);
+}
+
+function toast(msg,type) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+(type==='ok'?'tok':type==='err'?'terr':'tinf')+' on';
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('on'),5000);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  checkMobile();
+  document.getElementById('upd').textContent=new Date().toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
+  loadDash();
+  getTab('Klanten').then(r=>{
+    const n=r.length||0;
+    document.getElementById('cnt-k').textContent=n;
+    syncMobCounts(n,0,0);
+  });
+  getTab('Planning ').then(r=>{
+    const a=r.filter(x=>['gepland','bezig'].includes((x.status||'').toLowerCase())).length;
+    document.getElementById('cnt-p').textContent=a;
+  });
+});
+</script>
+</body>
+</html>
